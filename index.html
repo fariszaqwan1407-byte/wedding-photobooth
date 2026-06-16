@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wedding Photobooth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="screen">
+  <h1>Wedding Photobooth 💖</h1>
+
+  <video id="video" autoplay></video>
+
+  <div class="controls">
+    <button onclick="capture()">📸 Capture</button>
+    <button onclick="switchCamera()">🔄 Switch</button>
+  </div>
+
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <img id="preview" />
+
+  <input id="name" placeholder="Nama">
+  <input id="message" placeholder="Ucapan">
+
+  <button onclick="upload()">💾 Submit</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
