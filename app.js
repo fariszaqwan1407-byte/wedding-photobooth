@@ -1,55 +1,69 @@
-const FOLDER_NAME = "Wedding Photobooth";
+const API_URL = "https://script.google.com/macros/s/AKfycbyEB4R1SM2iGm9R5EJth1Qu1SfqhysZdnJiTO93SI4RXh1T12EK95NljiwUAogcZuez/exec";
 
-function getFolder() {
-  const folders = DriveApp.getFoldersByName(FOLDER_NAME);
-  if (folders.hasNext()) return folders.next();
-  return DriveApp.createFolder(FOLDER_NAME);
+let stream;
+let imageData = "";
+let currentFacing = "user";
+
+async function startCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: currentFacing }
+  });
+
+  document.getElementById("video").srcObject = stream;
 }
 
-function doPost(e) {
-  try {
-    const folder = getFolder();
+startCamera();
 
-    const data = JSON.parse(e.postData.contents || "{}");
-    const imageData = data.image;
+function switchCamera() {
+  currentFacing = currentFacing === "user" ? "environment" : "user";
+  stream.getTracks().forEach(t => t.stop());
+  startCamera();
+}
 
-    if (!imageData) {
-      throw new Error("No image data received");
-    }
+function capture() {
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
 
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(imageData),
-      "image/jpeg",
-      "photo.jpg"
-    );
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0);
 
-    const imageUrl = file.getUrl();
+  imageData = canvas.toDataURL("image/jpeg");
 
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: true,
-        url: imageUrl
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+  document.getElementById("preview").src = imageData;
+}
 
-  } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: err.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+async function upload() {
+  const name = document.getElementById("name").value;
+  const message = document.getElementById("message").value;
+
+  if (!imageData) {
+    alert("Sila capture gambar dulu");
+    return;
   }
-}
 
-function doGet() {
-  return ContentService
-    .createTextOutput(JSON.stringify({
-      success: true,
-      message: "API alive"
-    }))
-    .setMimeType(ContentService.MimeType.JSON);
+  const base64 = imageData.split(",")[1];
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain"
+    },
+    body: JSON.stringify({
+      image: base64,
+      name: name,
+      message: message
+    })
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (data.success) {
+    alert("Upload berjaya 💖");
+  } else {
+    alert("Upload gagal");
+  }
 }
