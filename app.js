@@ -1,54 +1,55 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyEB4R1SM2iGm9R5EJth1Qu1SfqhysZdnJiTO93SI4RXh1T12EK95NljiwUAogcZuez/exec";
+const FOLDER_NAME = "Wedding Photobooth";
 
-let stream;
-let currentFacing = "user";
-let imageData = "";
-
-async function startCamera() {
-  stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: currentFacing }
-  });
-  document.getElementById("video").srcObject = stream;
+function getFolder() {
+  const folders = DriveApp.getFoldersByName(FOLDER_NAME);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(FOLDER_NAME);
 }
 
-startCamera();
+function doPost(e) {
+  try {
+    const folder = getFolder();
 
-function switchCamera() {
-  currentFacing = currentFacing === "user" ? "environment" : "user";
-  stream.getTracks().forEach(t => t.stop());
-  startCamera();
+    const data = JSON.parse(e.postData.contents || "{}");
+    const imageData = data.image;
+
+    if (!imageData) {
+      throw new Error("No image data received");
+    }
+
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(imageData),
+      "image/jpeg",
+      "photo.jpg"
+    );
+
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    const imageUrl = file.getUrl();
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: true,
+        url: imageUrl
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: err.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
-function capture() {
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0);
-
-  imageData = canvas.toDataURL("image/jpeg");
-
-  document.getElementById("preview").src = imageData;
-}
-
-async function upload() {
-  const name = document.getElementById("name").value;
-  const message = document.getElementById("message").value;
-
-  const base64 = imageData.split(",")[1];
-
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      image: base64,
-      name: name,
-      message: message,
-      frame: "gold"
-    })
-  });
-
-  alert("Uploaded 💖");
+function doGet() {
+  return ContentService
+    .createTextOutput(JSON.stringify({
+      success: true,
+      message: "API alive"
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
