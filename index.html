@@ -3,30 +3,73 @@
 <head>
   <title>Wedding Photobooth</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #fff0f5;
+      margin: 0;
+      padding: 10px;
+    }
+
+    video {
+      width: 90%;
+      border-radius: 20px;
+      margin-top: 10px;
+    }
+
+    canvas {
+      display: none;
+    }
+
+    img {
+      width: 90%;
+      border-radius: 20px;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 10px;
+      border: none;
+      background: #ff69b4;
+      color: white;
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="screen">
-  <h1>Wedding Photobooth 💖</h1>
+<h2>Wedding Photobooth 💖</h2>
 
-  <video id="video" autoplay></video>
+<video id="video" autoplay></video>
+<canvas id="canvas"></canvas>
 
-  <div class="controls">
-    <button onclick="capture()">📸 Capture</button>
-    <button onclick="switchCamera()">🔄 Switch</button>
-  </div>
+<img id="preview"/>
 
-  <canvas id="canvas" style="display:none;"></canvas>
+<br>
 
-  <img id="preview" />
+<input id="name" placeholder="Nama">
+<br>
+<input id="message" placeholder="Ucapan">
 
-  <input id="name" placeholder="Nama">
-  <input id="message" placeholder="Ucapan">
+<br>
 
-  <button onclick="upload()">💾 Submit</button>
-</div>
+<button onclick="capture()">📸 Capture</button>
+<button onclick="switchCamera()">🔄 Switch</button>
+<button onclick="upload()">💾 Submit</button>
 
 <script src="app.js"></script>
+
 </body>
 </html>
